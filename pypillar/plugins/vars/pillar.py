@@ -147,8 +147,6 @@ class VarsModule(object):
 
         # Calculate pillar path (path to the 'pillar/' directory)
         pillar_path = self.get_pillar_path()
-        if pillar_path is None:
-            return results
         
         # Prepare absolute pillar path (path to the actual pillar folder
         # in 'pillar/' folder)
