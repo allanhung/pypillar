@@ -12,7 +12,7 @@ Configuration
 
     cat > ansible.cfg <<EOF
     [defaults]
-    # vars_plugins configuration is required for the pypillar
+    # action_plugins and vars_plugins configuration is required for the pypillar
     action_plugins = $pypillar_location/plugins/actions
     vars_plugins = $pypillar_location/plugins/vars
     # using ":" to spearate multi path
