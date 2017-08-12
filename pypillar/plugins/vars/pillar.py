@@ -107,7 +107,7 @@ class VarsModule(object):
                        file_list.append(os.path.join(root,f))
         file_list = sorted(file_list)
         display.vv('loading file list: {}:'.format(file_list))
-        for vars_file in file_list:
+        for vars_file in reversed(file_list):
             if (os.path.exists(vars_file) and os.path.isfile(vars_file) and os.stat(vars_file).st_size != 0):
                 data = self.loader.load_from_file(vars_file)
                 results = vars.combine_vars(data, results)
