@@ -3,6 +3,7 @@
   hosts: all
   pre_tasks:
     - pillar: {}
+      delegate_to: 127.0.0.1
     - debug: var=pillar
   roles:
     - test

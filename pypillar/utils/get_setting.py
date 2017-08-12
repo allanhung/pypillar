@@ -1,10 +1,5 @@
 #!/usr/bin/python
 
-<<<<<<< HEAD:pypillar/utils/get_setting.py
-=======
-import pypillar.utils
-
->>>>>>> f545272fd6edae6524d7c513ea9bc22e3a8f2f7e:pypillar/plugins/modules/get_setting.py
 DOCUMENTATION = '''
 ---
 module: get_setting
@@ -13,7 +8,6 @@ short_description: get setting from salt pillar
 
 from copy import deepcopy
 
-<<<<<<< HEAD:pypillar/utils/get_setting.py
 SETTING_LIST = ['domain', 'hostname']
 
 def get_host_dict(myhost, root_value, config_key, kwargs):
@@ -391,32 +385,3 @@ def get_list(myhost, setting, **kwargs):
             if context[attr]:
                 return context[attr]
         return context['default']
-=======
-def main():
-
-    fields = {
-        "myhost": {"required": True, "type": "dict"},
-        "setting": {"required": True, "type": "dict"},
-        "extra_setting": {"default": {}, "type": "dict"},
-        "value_type": {
-          "default": "dict",
-          "choices": ["dict", "list"],
-          "type": "str"
-        },
-    }
-
-    choice_map = {
-        "dict": get_setting_dict,
-        "list": get_setting_list,
-    }
-
-    module = AnsibleModule(argument_spec=fields)
-    result = choice_map.get(module.params['value_type'])(module.params['myhost'], module.params['setting'], **module.params['extra_setting'])
-    module.exit_json(meta=result)
-
-from ansible.module_utils.basic import *
-
-if __name__ == '__main__':
-    main()
-
->>>>>>> f545272fd6edae6524d7c513ea9bc22e3a8f2f7e:pypillar/plugins/modules/get_setting.py
