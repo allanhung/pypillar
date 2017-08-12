@@ -20,4 +20,5 @@ Configuration
     EOF
 
     # test
+    # modify your host setting in example
     ansible-playbook -i host site.yml
