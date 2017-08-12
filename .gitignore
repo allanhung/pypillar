@@ -1,4 +1,5 @@
-build
-pypillar.egg-info
-ChangeLog
 AUTHORS
+build
+ChangeLog
+pbr*
+pypillar.egg-info

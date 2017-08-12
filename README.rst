@@ -13,7 +13,11 @@ Configuration
     cat > ansible.cfg <<EOF
     [defaults]
     # vars_plugins configuration is required for the pypillar
+    action_plugins = $pypillar_location/plugins/actions
     vars_plugins = $pypillar_location/plugins/vars
     # using ":" to spearate multi path
-    library = $pypillar_location/plugins/modules
+    library = $pypillar_location/modules
     EOF
+
+    # test
+    ansible-playbook -i host site.yml

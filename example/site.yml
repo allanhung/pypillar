@@ -1,0 +1,8 @@
+---
+- name: pillar example
+  hosts: all
+  pre_tasks:
+    - pillar: {}
+    - debug: var=pillar
+  roles:
+    - test

@@ -1,25 +1,13 @@
 #!/usr/bin/python
 
-from copy import deepcopy
-
 DOCUMENTATION = '''
 ---
 module: get_setting
 short_description: get setting from salt pillar
 '''
 
-EXAMPLES = '''
-- name: get setting
-  get_setting:
-    myhost: "{{ myhost.meta }}"
-    setting: "{{ mysql_daemon }}"
-    extra_setting: {'check_osver': True }
-    value_type: dict
-  register: mysql_daemon
-  ignore_errors: true
-'''
+from copy import deepcopy
 
-KEY_PREFIX='my_'
 SETTING_LIST = ['domain', 'hostname']
 
 def get_host_dict(myhost, root_value, config_key, kwargs):
@@ -28,14 +16,14 @@ def get_host_dict(myhost, root_value, config_key, kwargs):
     if 'domain' in kwargs.keys():
         mydomain = kwargs['domain']
     else:
-        mydomain = myhost[KEY_PREFIX+'domain']
+        mydomain = myhost['domain']
     # set host_config_key
     if config_key == 'domain':
         host_config_key = mydomain
     elif config_key == 'hostport':
-        host_config_key = myhost[KEY_PREFIX+'hostname']+'_'+str(kwargs.get('port',0))
+        host_config_key = myhost['hostname']+':'+str(kwargs.get('port',0))
     else:
-        host_config_key = myhost[KEY_PREFIX+config_key]
+        host_config_key = myhost[config_key]
 
     context_host={}
     if check_osver:
@@ -44,56 +32,56 @@ def get_host_dict(myhost, root_value, config_key, kwargs):
             #   config_key.domain:
             #     os_ver:
             #       myhost[config_key]
-            context_host.update(root_value.get(config_key+'.'+mydomain,{}).get(myhost[KEY_PREFIX+'os_ver'],{}).get(host_config_key,{}))
+            context_host.update(root_value.get(config_key+'.'+mydomain,{}).get(myhost['os_ver'],{}).get(host_config_key,{}))
             # key:
             #   config_key.domain:
             #     os_subver:
             #       myhost[config_key]
-            context_host.update(root_value.get(config_key+'.'+mydomain,{}).get(myhost[KEY_PREFIX+'os_subver'],{}).get(host_config_key,{}))
+            context_host.update(root_value.get(config_key+'.'+mydomain,{}).get(myhost['os_subver'],{}).get(host_config_key,{}))
         if not context_host:
             # key:
             #   config_key:
             #     os_ver:
             #       myhost[config_key].domain
-            context_host.update(root_value.get(config_key,{}).get(myhost[KEY_PREFIX+'os_ver'],{}).get(host_config_key+'.'+mydomain,{}))
+            context_host.update(root_value.get(config_key,{}).get(myhost['os_ver'],{}).get(host_config_key+'.'+mydomain,{}))
             # key:
             #   config_key:
             #     os_subver:
             #       myhost[config_key].domain
-            context_host.update(root_value.get(config_key,{}).get(myhost[KEY_PREFIX+'os_subver'],{}).get(host_config_key+'.'+mydomain,{}))
+            context_host.update(root_value.get(config_key,{}).get(myhost['os_subver'],{}).get(host_config_key+'.'+mydomain,{}))
         if not context_host:
             # key:
             #   config_key:
             #     myhost[config_key].domain
             #       os_ver:
-            context_host.update(root_value.get(config_key,{}).get(host_config_key+'.'+mydomain,{}).get(myhost[KEY_PREFIX+'os_ver'],{}))
+            context_host.update(root_value.get(config_key,{}).get(host_config_key+'.'+mydomain,{}).get(myhost['os_ver'],{}))
             # key:
             #   config_key:
             #     myhost[config_key].domain
             #       os_subver:
-            context_host.update(root_value.get(config_key,{}).get(host_config_key+'.'+mydomain,{}).get(myhost[KEY_PREFIX+'os_subver'],{}))
+            context_host.update(root_value.get(config_key,{}).get(host_config_key+'.'+mydomain,{}).get(myhost['os_subver'],{}))
         if not context_host:
             # key:
             #   config_key:
             #     os_ver:
             #       myhost[config_key]
-            context_host.update(root_value.get(config_key,{}).get(myhost[KEY_PREFIX+'os_ver'],{}).get(host_config_key,{}))
+            context_host.update(root_value.get(config_key,{}).get(myhost['os_ver'],{}).get(host_config_key,{}))
             # key:
             #   config_key:
             #     os_subver:
             #       myhost[config_key]
-            context_host.update(root_value.get(config_key,{}).get(myhost[KEY_PREFIX+'os_subver'],{}).get(host_config_key,{}))
+            context_host.update(root_value.get(config_key,{}).get(myhost['os_subver'],{}).get(host_config_key,{}))
         if not context_host:
             # key:
             #   config_key:
             #     myhost[config_key]
             #       os_ver:
-            context_host.update(root_value.get(config_key,{}).get(host_config_key,{}).get(myhost[KEY_PREFIX+'os_ver'],{}))
+            context_host.update(root_value.get(config_key,{}).get(host_config_key,{}).get(myhost['os_ver'],{}))
             # key:
             #   config_key:
             #     myhost[config_key]
             #       os_subver:
-            context_host.update(root_value.get(config_key,{}).get(host_config_key,{}).get(myhost[KEY_PREFIX+'os_subver'],{}))
+            context_host.update(root_value.get(config_key,{}).get(host_config_key,{}).get(myhost['os_subver'],{}))
         # process with default_os
         if not context_host:
             # key:
@@ -164,7 +152,7 @@ def join_dict(dictx, dicty, merge_list=False):
             dicta[k]=v            
     return dicta
 
-def get_setting_dict(myhost, setting, **kwargs):
+def get_dict(myhost, setting, **kwargs):
     default=kwargs.get('default','all')
     merge_list=kwargs.get('merge_list',False)
     check_osver=kwargs.get('check_osver',False)
@@ -177,11 +165,11 @@ def get_setting_dict(myhost, setting, **kwargs):
             # key:
             #   default:
             #     os_ver:
-            context['default'].update(root_value.get('default',{}).get(myhost[KEY_PREFIX+'os_ver'],{}))
+            context['default'].update(root_value.get('default',{}).get(myhost['os_ver'],{}))
             # key:
             #   default:
             #     subos_ver:
-            context['default'].update(root_value.get('default',{}).get(myhost[KEY_PREFIX+'os_subver'],{}))
+            context['default'].update(root_value.get('default',{}).get(myhost['os_subver'],{}))
         if not context['default']:
             # key:
             #   default:
@@ -210,14 +198,14 @@ def get_host_list(myhost, root_value, config_key, kwargs):
     if 'domain' in kwargs.keys():
         mydomain = kwargs['domain']
     else:
-        mydomain = myhost[KEY_PREFIX+'domain']
+        mydomain = myhost['domain']
     # set host_config_key
     if config_key == 'domain':
         host_config_key = mydomain
     elif config_key == 'hostport':
-        host_config_key = myhost[KEY_PREFIX+'hostname']+'_'+str(kwargs.get('port',0))
+        host_config_key = myhost['hostname']+'_'+str(kwargs.get('port',0))
     else:
-        host_config_key = myhost[KEY_PREFIX+config_key]
+        host_config_key = myhost[config_key]
 
     context_host=[]
     if check_osver:
@@ -226,56 +214,56 @@ def get_host_list(myhost, root_value, config_key, kwargs):
             #   config_key.domain:
             #     os_ver:
             #       myhost[config_key]
-            context_host.extend(root_value.get(config_key+'.'+mydomain,{}).get(myhost[KEY_PREFIX+'os_ver'],{}).get(host_config_key,[]))
+            context_host.extend(root_value.get(config_key+'.'+mydomain,{}).get(myhost['os_ver'],{}).get(host_config_key,[]))
             # key:
             #   config_key.domain:
             #     os_subver:
             #       myhost[config_key]
-            context_host=join_list(context_host, root_value.get(config_key+'.'+mydomain,{}).get(myhost[KEY_PREFIX+'os_subver'],{}).get(host_config_key,[]),merge_dict)
+            context_host=join_list(context_host, root_value.get(config_key+'.'+mydomain,{}).get(myhost['os_subver'],{}).get(host_config_key,[]),merge_dict)
         if not context_host:
             # key:
             #   config_key:
             #     os_ver:
             #       myhost[config_key].domain
-            context_host.extend(root_value.get(config_key,{}).get(myhost[KEY_PREFIX+'os_ver'],{}).get(host_config_key+'.'+mydomain,[]))
+            context_host.extend(root_value.get(config_key,{}).get(myhost['os_ver'],{}).get(host_config_key+'.'+mydomain,[]))
             # key:
             #   config_key:
             #     os_subver:
             #       myhost[config_key].domain
-            context_host=join_list(context_host, root_value.get(config_key,{}).get(myhost[KEY_PREFIX+'os_subver'],{}).get(host_config_key+'.'+mydomain,[]),merge_dict)
+            context_host=join_list(context_host, root_value.get(config_key,{}).get(myhost['os_subver'],{}).get(host_config_key+'.'+mydomain,[]),merge_dict)
         if not context_host:
             # key:
             #   config_key:
             #     myhost[config_key].domain
             #       os_ver:
-            context_host.extend(root_value.get(config_key,{}).get(host_config_key+'.'+mydomain,{}).get(myhost[KEY_PREFIX+'os_ver'],[]))
+            context_host.extend(root_value.get(config_key,{}).get(host_config_key+'.'+mydomain,{}).get(myhost['os_ver'],[]))
             # key:
             #   config_key:
             #     myhost[config_key].domain
             #       os_subver:
-            context_host=join_list(context_host, root_value.get(config_key,{}).get(host_config_key+'.'+mydomain,{}).get(myhost[KEY_PREFIX+'os_subver'],[]),merge_dict)
+            context_host=join_list(context_host, root_value.get(config_key,{}).get(host_config_key+'.'+mydomain,{}).get(myhost['os_subver'],[]),merge_dict)
         if not context_host:
             # key:
             #   config_key:
             #     os_ver:
             #       myhost[config_key]
-            context_host.extend(root_value.get(config_key,{}).get(myhost[KEY_PREFIX+'os_ver'],{}).get(host_config_key,[]))
+            context_host.extend(root_value.get(config_key,{}).get(myhost['os_ver'],{}).get(host_config_key,[]))
             # key:
             #   config_key:
             #     os_subver:
             #       myhost[config_key]
-            context_host=join_list(context_host, root_value.get(config_key,{}).get(myhost[KEY_PREFIX+'os_subver'],{}).get(host_config_key,[]),merge_dict)
+            context_host=join_list(context_host, root_value.get(config_key,{}).get(myhost['os_subver'],{}).get(host_config_key,[]),merge_dict)
         if not context_host:
             # key:
             #   config_key:
             #     myhost[config_key]
             #       os_ver:
-            context_host.extend(root_value.get(config_key,{}).get(host_config_key,{}).get(myhost[KEY_PREFIX+'os_ver'],[]))
+            context_host.extend(root_value.get(config_key,{}).get(host_config_key,{}).get(myhost['os_ver'],[]))
             # key:
             #   config_key:
             #     myhost[config_key]
             #       os_subver:
-            context_host=join_list(context_host, root_value.get(config_key,{}).get(host_config_key,{}).get(myhost[KEY_PREFIX+'os_subver'],[]),merge_dict)
+            context_host=join_list(context_host, root_value.get(config_key,{}).get(host_config_key,{}).get(myhost['os_subver'],[]),merge_dict)
         # process with default_os
         if not context_host:
             # key:
@@ -358,7 +346,7 @@ def join_list(lista, listb, merge_dict=True):
     else:
         return []
 
-def get_setting_list(myhost, setting, **kwargs):
+def get_list(myhost, setting, **kwargs):
     default=kwargs.get('default','all')
     merge_list=kwargs.get('merge_list',False)
     merge_dict=kwargs.get('merge_dict',True)
@@ -372,11 +360,11 @@ def get_setting_list(myhost, setting, **kwargs):
             # key:
             #   default:
             #     os_ver:
-            context['default'].extend(root_value.get('default',{}).get(myhost[KEY_PREFIX+'os_ver'],[]))
+            context['default'].extend(root_value.get('default',{}).get(myhost['os_ver'],[]))
             # key:
             #   default:
             #     subos_ver:
-            context['default']=join_list(context['default'],root_value.get('default',{}).get(myhost[KEY_PREFIX+'os_subver'],[]),merge_dict)
+            context['default']=join_list(context['default'],root_value.get('default',{}).get(myhost['os_subver'],[]),merge_dict)
         if not context['default']:
             # key:
             #   default:
@@ -397,31 +385,3 @@ def get_setting_list(myhost, setting, **kwargs):
             if context[attr]:
                 return context[attr]
         return context['default']
-
-def main():
-
-    fields = {
-        "myhost": {"required": True, "type": "dict"},
-        "setting": {"required": True, "type": "dict"},
-        "extra_setting": {"default": {}, "type": "dict"},
-        "value_type": {
-          "default": "dict",
-          "choices": ["dict", "list"],
-          "type": "str"
-        },
-    }
-
-    choice_map = {
-        "dict": get_setting_dict,
-        "list": get_setting_list,
-    }
-
-    module = AnsibleModule(argument_spec=fields)
-    result = choice_map.get(module.params['value_type'])(module.params['myhost'], module.params['setting'], **module.params['extra_setting'])
-    module.exit_json(meta=result)
-
-from ansible.module_utils.basic import *
-
-if __name__ == '__main__':
-    main()
-

@@ -1,0 +1,26 @@
+list_vars:
+  args:
+    type: list
+  default:
+    - list1
+    - list2
+  hostname:
+    hosta:
+      - list2
+      - list3
+
+list_vars_with_os_version:
+  args:
+    type: list
+    check_osver: True
+  default:
+    6:
+      - os6_list1
+    7:
+      - os7_list1
+
+dict_vars:
+  default:
+    mydict:
+      key1: value1
+      key2: value2
