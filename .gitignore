@@ -3,3 +3,4 @@ build
 ChangeLog
 pbr*
 pypillar.egg-info
+*pyc
