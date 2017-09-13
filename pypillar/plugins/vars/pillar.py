@@ -40,10 +40,6 @@ class VarsModule(object):
         self.inventory = inventory
         self.inventory_basedir = inventory.basedir()
         self.loader = DataLoader()
-        basedir = inventory.playbook_basedir()
-        if basedir is not None: 
-            basedir = os.path.abspath(basedir)
-        self.playbook_basedir = basedir
         
     def get_pillar_path(self):
         
@@ -55,34 +51,24 @@ class VarsModule(object):
         # Use this path, if it exists and not empty
         env_ansible_pillar_path = os.environ.get('ANSIBLE_PILLARS_DIRECTORY')
         if env_ansible_pillar_path is not None and env_ansible_pillar_path != "":
-                
             pillar_path = os.path.abspath(env_ansible_pillar_path)
             # In case there is no such directory, stop
-            if (not os.path.exists(pillar_path) or 
-                not os.path.isdir(pillar_path)):
-                raise errors.AnsibleError("Profiles directory that is specified by ANSIBLE_PILLARS_DIRECTORY does not exists or not a directory: %s" % env_ansible_pillar_path)
-            
+            if (not os.path.exists(pillar_path) or not os.path.isdir(pillar_path)):
+                raise errors.AnsibleError("Profiles directory that is specified by ANSIBLE_PILLARS_DIRECTORY does not exists or not a directory: %s" % env_ansible_pillar_path)            
             display.v('Using environment variable ANSIBLE_PILLARS_DIRECTORY: {}'.format(env_ansible_pillar_path))
             return pillar_path
         
         # Second, try to use 'pillar/' directory in playbook directory.
         # If not found, then use 'pillar/' in inventory directory.
-        for basedir in [ self.playbook_basedir, self.inventory_basedir ]:
-            if basedir is None:
-                continue
-            
-            pillar_path = os.path.abspath(os.path.join(basedir, "pillar"))
+        if self.inventory_basedir:
+            pillar_path = os.path.abspath(os.path.join(self.inventory_basedir, "pillar"))
+        else:    
+            return None
 
-            if (not os.path.exists(pillar_path) or
-                not os.path.isdir(pillar_path)):
-                display.v('pillar path {} not exists!'.format(pillar_path))
-                continue
-            
-            display.v('Using pillar in path: {}'.format(pillar_path))
-            return pillar_path
-            
-        # It means that we didn't find path to 'pillar/' directory
-        return None
+        if (not os.path.exists(pillar_path) or not os.path.isdir(pillar_path)):
+            display.v('pillar path {} not exists!'.format(pillar_path))
+            return None
+        return pillar_path
         
         
     def run(self, host, vault_password):
@@ -92,20 +78,29 @@ class VarsModule(object):
         results = {}
         # Calculate pillar path (path to the 'pillar/' directory)
         pillar_path = self.get_pillar_path()
-        if pillar_path is None:
-            display.v('no pillar path found!')
-            return results
         
         # Start from specified pillar path
-        current_path = os.path.abspath(pillar_path)
+        cur_path_list = []
+        cur_path = os.path.join(os.getcwd(), "pillar")
+        if cur_path and os.path.exists(cur_path) and os.path.isdir(cur_path):
+            cur_path_list.append(os.path.join(cur_path))
+        if pillar_path:
+            cur_path_list.append(os.path.abspath(pillar_path))
+        if not cur_path_list:
+            display.v('no pillar path found!')
+            return results
         # read file with extension '.yml' and folder name not end with '.bak'
         file_list=[]
-        for root, subdirs, files in os.walk(current_path):
-           if not root.endswith('.bak'):
-               for f in files:
-                   if f.endswith('.yml'):
-                       file_list.append(os.path.join(root,f))
-        file_list = sorted(file_list)
+        for cpath in cur_path_list: 
+            display.v('Using pillar in path: {}'.format(cpath))
+            for root, subdirs, files in os.walk(cpath):
+               c_file_list=[]
+               if not root.endswith('.bak'):
+                   for f in files:
+                       if f.endswith('.yml'):
+                           c_file_list.append(os.path.join(root,f))
+               c_file_list = sorted(c_file_list)
+               file_list.extend(c_file_list)
         display.vv('loading file list: {}:'.format(file_list))
         for vars_file in reversed(file_list):
             if (os.path.exists(vars_file) and os.path.isfile(vars_file) and os.stat(vars_file).st_size != 0):
