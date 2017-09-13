@@ -22,3 +22,26 @@ Configuration
     # test
     # modify your host setting in example
     ansible-playbook -i host site.yml
+
+Example
+=========
+
+::
+
+    .
+    ├── inventory
+    │   ├── sub1
+    │   │   ├── hosts
+    │   │   └── pillar
+    │   │       └── stage.yml
+    │   └── sub2
+    │       ├── hosts
+    │       └── pillar
+    │           └── stage.yml
+    ├── pillar
+    │   ├── stage.yml
+
+    ansible-playbook -i inventory/sub1/hosts site.yml
+    
+This will paser file in pillar first and then paser file in inventory pillar.
+If there is same key, key in pillar will replace by key in inventory pillar.
