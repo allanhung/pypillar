@@ -17,11 +17,11 @@
 import os
 from ansible import errors
 from ansible.utils import vars
+from ansible.plugins.vars import BaseVarsPlugin
 from ansible.parsing.dataloader import DataLoader
 import ansible.constants as C
-from __main__ import display
 
-class VarsModule(object):
+class VarsModule(BaseVarsPlugin):
     
     """
     Loads variables from 'pillar/' directory in inventory base directory or in the same directory
@@ -33,14 +33,51 @@ class VarsModule(object):
     will not be scanned at all.
     """
 
-    def __init__(self, inventory):
+    def get_vars(self, loader, path, entities, cache=True):
+        ''' parses the inventory file '''
 
-        """ constructor """
-
-        self.inventory = inventory
-        self.inventory_basedir = inventory.basedir()
+        super(VarsModule, self).get_vars(loader, path, entities)
+        self.inventory_basedir = path
         self.loader = DataLoader()
+
+        results = {}
+        # Calculate pillar path (path to the 'pillar/' directory)
+        pillar_path = self.get_pillar_path()
         
+        # Start from specified pillar path
+        cur_path_list = []
+        cur_path = os.path.join(os.getcwd(), "pillar")
+        if cur_path and os.path.exists(cur_path) and os.path.isdir(cur_path):
+            cur_path_list.append(os.path.join(cur_path))
+        if pillar_path:
+            cur_path_list.append(os.path.abspath(pillar_path))
+        if not cur_path_list:
+            self._display.v('no pillar path found!')
+            return results
+        # read file with extension '.yml' and folder name not end with '.bak'
+        file_list=[]
+        for cpath in cur_path_list: 
+            self._display.v('Using pillar in path: {}'.format(cpath))
+            for root, subdirs, files in os.walk(cpath):
+               c_file_list=[]
+               if not root.endswith('.bak'):
+                   for f in files:
+                       if f.endswith('.yml'):
+                           c_file_list.append(os.path.join(root,f))
+               c_file_list = sorted(c_file_list)
+               file_list.extend(c_file_list)
+        self._display.vv('loading file list: {}:'.format(file_list))
+        for vars_file in reversed(file_list):
+            if (os.path.exists(vars_file) and os.path.isfile(vars_file) and os.stat(vars_file).st_size != 0):
+                data = self.loader.load_from_file(vars_file)
+                results = vars.combine_vars(data, results)
+
+        # debug
+        result={'pillar': results}
+        self._display.vvvv(result)
+        # all done, results is a dictionary of variables
+        return result
+
     def get_pillar_path(self):
         
         """
@@ -55,7 +92,7 @@ class VarsModule(object):
             # In case there is no such directory, stop
             if (not os.path.exists(pillar_path) or not os.path.isdir(pillar_path)):
                 raise errors.AnsibleError("Profiles directory that is specified by ANSIBLE_PILLARS_DIRECTORY does not exists or not a directory: %s" % env_ansible_pillar_path)            
-            display.v('Using environment variable ANSIBLE_PILLARS_DIRECTORY: {}'.format(env_ansible_pillar_path))
+            self._display.v('Using environment variable ANSIBLE_PILLARS_DIRECTORY: {}'.format(env_ansible_pillar_path))
             return pillar_path
         
         # Second, try to use 'pillar/' directory in playbook directory.
@@ -66,51 +103,6 @@ class VarsModule(object):
             return None
 
         if (not os.path.exists(pillar_path) or not os.path.isdir(pillar_path)):
-            display.v('pillar path {} not exists!'.format(pillar_path))
+            self._display.v('pillar path {} not exists!'.format(pillar_path))
             return None
         return pillar_path
-        
-        
-    def run(self, host, vault_password):
-
-        """ Main body of the plugin, does actual loading """
-
-        results = {}
-        # Calculate pillar path (path to the 'pillar/' directory)
-        pillar_path = self.get_pillar_path()
-        
-        # Start from specified pillar path
-        cur_path_list = []
-        cur_path = os.path.join(os.getcwd(), "pillar")
-        if cur_path and os.path.exists(cur_path) and os.path.isdir(cur_path):
-            cur_path_list.append(os.path.join(cur_path))
-        if pillar_path:
-            cur_path_list.append(os.path.abspath(pillar_path))
-        if not cur_path_list:
-            display.v('no pillar path found!')
-            return results
-        # read file with extension '.yml' and folder name not end with '.bak'
-        file_list=[]
-        for cpath in cur_path_list: 
-            display.v('Using pillar in path: {}'.format(cpath))
-            for root, subdirs, files in os.walk(cpath):
-               c_file_list=[]
-               if not root.endswith('.bak'):
-                   for f in files:
-                       if f.endswith('.yml'):
-                           c_file_list.append(os.path.join(root,f))
-               c_file_list = sorted(c_file_list)
-               file_list.extend(c_file_list)
-        display.vv('loading file list: {}:'.format(file_list))
-        for vars_file in reversed(file_list):
-            if (os.path.exists(vars_file) and os.path.isfile(vars_file) and os.stat(vars_file).st_size != 0):
-                data = self.loader.load_from_file(vars_file)
-                results = vars.combine_vars(data, results)
-
-        # debug
-        result={'pillar': results}
-        display.vvvv(result)
-        # all done, results is a dictionary of variables
-        return result
-
-
