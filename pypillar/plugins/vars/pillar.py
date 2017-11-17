@@ -77,7 +77,7 @@ class VarsModule(BaseVarsPlugin):
 
             # debug
             result={'pillar': results}
-            self._display.vvvv(result)
+            self._display.vvv(str(result))
             # all done, results is a dictionary of variables
             return result
 
