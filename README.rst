@@ -3,6 +3,12 @@ What is pypillar?
 
 Pypillar is an variable setting style like saltslack pillar.
 
+How to install
+=========================
+
+::
+    pip install git+https://github.com/allanhung/pypillar.git
+
 Configuration
 =========
 
