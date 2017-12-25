@@ -7,6 +7,7 @@ How to install
 =========================
 
 ::
+
     pip install git+https://github.com/allanhung/pypillar.git
 
 Configuration
