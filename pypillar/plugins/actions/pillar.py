@@ -30,7 +30,7 @@ class ActionModule(ActionBase):
             args=v.pop('args', {})
             func_type=args.pop('type', 'dict')
             check_osver=args.get('check_osver', False)
-            if 'default' in v:
+            if 'default' in v.keys():
                 if check_osver:
                     func_type=type(v['default'].values()[0]).__name__
                 else:
