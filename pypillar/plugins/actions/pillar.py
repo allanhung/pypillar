@@ -21,9 +21,6 @@ class ActionModule(ActionBase):
         facts['myhost']=myhost
         # process pillar
         pillar = task_vars.get('pillar', {})
-
-        check_osver=kwargs.get('check_osver',False)
-
         choice_map = {
             "dict": get_setting.get_dict,
             "list": get_setting.get_list,
