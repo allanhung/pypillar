@@ -30,8 +30,8 @@ class ActionModule(ActionBase):
         }     
         for k, v in pillar.items():
             self._display.v('parse setting: {}'.format(str(k)))
-#            args=v.pop('args', {})
-#            func_type=args.pop('type', 'dict')
+            args=v.pop('args', {})
+            func_type=args.pop('type', 'dict')
             check_osver=args.get('check_osver', False)
             if 'default' in v:
                 if check_osver:
