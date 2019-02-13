@@ -42,9 +42,9 @@ class ActionModule(ActionBase):
                     func_type='dict' if isinstance(v['example'], dict) else 'list'
             else:
                 if check_osver:
-                    func_type='dict' if isinstance(v.values()[0].values()[0].values()[0], dict) else 'list'
+                    func_type='dict' if isinstance(v[v.keys()[0]].values()[0], dict) else 'list'
                 else:
-                    func_type='dict' if isinstance(v.values()[0].values()[0], dict) else 'list'
+                    func_type='dict' if isinstance(v[v.keys()[0]], dict) else 'list'
             facts[k] = choice_map.get(func_type)(myhost, v, **args)
         result['failed'] = False
         pillar.update(facts)

@@ -48,38 +48,37 @@ class VarsModule(BaseVarsPlugin):
         cur_path_list = []
         cur_path = os.path.join(os.getcwd(), "pillar")
         if pillar_path == cur_path:
-            return {}
-        else:  
-            if cur_path and os.path.exists(cur_path) and os.path.isdir(cur_path):
-                cur_path_list.append(os.path.join(cur_path))
-            if pillar_path:
-                cur_path_list.append(os.path.abspath(pillar_path))
-            if not cur_path_list:
-                self._display.v('no pillar path found!')
-                return results
-            # read file with extension '.yml' and folder name not end with '.bak'
-            file_list=[]
-            for cpath in cur_path_list: 
-                self._display.v('Using pillar in path: {}'.format(cpath))
-                for root, subdirs, files in os.walk(cpath):
-                   c_file_list=[]
-                   if not root.endswith('.bak'):
-                       for f in files:
-                           if f.endswith('.yml'):
-                               c_file_list.append(os.path.join(root,f))
-                   c_file_list = sorted(c_file_list)
-                   file_list.extend(c_file_list)
-            self._display.vv('loading file list: {}:'.format(file_list))
-            for vars_file in reversed(file_list):
-                if (os.path.exists(vars_file) and os.path.isfile(vars_file) and os.stat(vars_file).st_size != 0):
-                    data = self.loader.load_from_file(vars_file)
-                    results = vars.combine_vars(data, results)
+            cur_path = ''
+        if cur_path and os.path.exists(cur_path) and os.path.isdir(cur_path):
+            cur_path_list.append(os.path.join(cur_path))
+        if pillar_path:
+            cur_path_list.append(os.path.abspath(pillar_path))
+        if not cur_path_list:
+            self._display.v('no pillar path found!')
+            return results
+        # read file with extension '.yml' and folder name not end with '.bak'
+        file_list=[]
+        for cpath in cur_path_list: 
+            self._display.v('Using pillar in path: {}'.format(cpath))
+            for root, subdirs, files in os.walk(cpath):
+               c_file_list=[]
+               if not root.endswith('.bak'):
+                   for f in files:
+                       if f.endswith('.yml'):
+                           c_file_list.append(os.path.join(root,f))
+               c_file_list = sorted(c_file_list)
+               file_list.extend(c_file_list)
+        self._display.vv('loading file list: {}:'.format(file_list))
+        for vars_file in reversed(file_list):
+            if (os.path.exists(vars_file) and os.path.isfile(vars_file) and os.stat(vars_file).st_size != 0):
+                data = self.loader.load_from_file(vars_file)
+                results = vars.combine_vars(data, results)
 
-            # debug
-            result={'pillar': results}
-            self._display.vvv(str(result))
-            # all done, results is a dictionary of variables
-            return result
+        # debug
+        result={'pillar': results}
+        self._display.vvv(str(result))
+        # all done, results is a dictionary of variables
+        return result
 
     def get_pillar_path(self):
         
