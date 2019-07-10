@@ -134,7 +134,7 @@ def get_host_dict(myhost, root_value, config_key, kwargs):
 def join_dict(dictx, dicty, merge_list=False):
     dicta=deepcopy(dictx)
     dictb=deepcopy(dicty)
-    for k, v in dictb.iteritems():
+    for k, v in dictb.items():
         if isinstance(v, dict):
             if k in dicta.keys():
                 if isinstance(dicta[k], dict):
@@ -332,7 +332,7 @@ def join_list(lista, listb, merge_dict=True):
                     tmpdict.update(element)
                 else:
                     tmpdict.update({element:None})
-            for k,v in tmpdict.iteritems():
+            for k,v in tmpdict.items():
                 if v is None:
                     tmplist.append(k)
                 else:

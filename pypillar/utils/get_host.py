@@ -9,7 +9,11 @@ def parser_host(hostname, osdistribution, osver):
 
     """
     results = {}
-    host, domain = hostname.split('.',1)
+    if '.' in hostname:
+        host, domain = hostname.split('.',1)
+    else:
+        host = hostname
+        domain = ''    
     os_ver_list = osver.split('.')
     if 'windows' in osdistribution.lower():
         results['os_ver'] = os_ver_list[0]+'.'+os_ver_list[1]

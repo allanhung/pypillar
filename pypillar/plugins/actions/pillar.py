@@ -30,21 +30,21 @@ class ActionModule(ActionBase):
             args=v.pop('args', {})
             func_type=args.pop('type', 'dict')
             check_osver=args.get('check_osver', False)
-            if 'default' in v.keys():
+            if 'default' in list(v.keys()):
                 if check_osver:
                     func_type='dict' if isinstance(v['default'].values()[0], dict) else 'list'
                 else:
                     func_type='dict' if isinstance(v['default'], dict) else 'list'
-            elif 'example' in v.keys():
+            elif 'example' in list(v.keys()):
                 if check_osver:
                     func_type='dict' if isinstance(v['example'].values()[0], dict) else 'list'
                 else:
                     func_type='dict' if isinstance(v['example'], dict) else 'list'
             else:
                 if check_osver:
-                    func_type='dict' if isinstance(v[v.keys()[0]].values()[0], dict) else 'list'
+                    func_type='dict' if isinstance(v[list(v.keys())[0]].values()[0], dict) else 'list'
                 else:
-                    func_type='dict' if isinstance(v[v.keys()[0]], dict) else 'list'
+                    func_type='dict' if isinstance(v[list(v.keys())[0]], dict) else 'list'
             facts[k] = choice_map.get(func_type)(myhost, v, **args)
         result['failed'] = False
         pillar.update(facts)
