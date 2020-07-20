@@ -19,6 +19,7 @@ from ansible import errors
 from ansible.utils import vars
 from ansible.plugins.vars import BaseVarsPlugin
 from ansible.parsing.dataloader import DataLoader
+from ansible.inventory.host import Host
 import ansible.constants as C
 
 class VarsModule(BaseVarsPlugin):
@@ -80,36 +81,32 @@ class VarsModule(BaseVarsPlugin):
                     result = vars.combine_vars(data, result)
 
             # debug
-            results={'pillar': result}
+            result={'pillar': result}
             self._display.vv(str(result))
-        # all done, results is a dictionary of variables
+        # all done, result is a dictionary of variables
         return result
 
-    def get_pillar_path(self):
-        
+    def get_inventory_pillar_path(self):
         """
         Returns absolute path to the 'pillar/' folder or None, if it cannot be calculated.
         """
-        
         # First try to use ANSIBLE_PILLARS_DIRECTORY environment variable
         # Use this path, if it exists and not empty
-        env_ansible_pillar_path = os.environ.get('ANSIBLE_PILLARS_DIRECTORY')
-        if env_ansible_pillar_path is not None and env_ansible_pillar_path != "":
-            pillar_path = os.path.abspath(env_ansible_pillar_path)
+        env_ansible_inventory_pillar_path = os.environ.get('ANSIBLE_PILLARS_DIRECTORY')
+        if env_ansible_inventory_pillar_path is not None and env_ansible_inventory_pillar_path != "":
+            inventory_pillar_path = os.path.abspath(env_ansible_inventory_pillar_path)
             # In case there is no such directory, stop
-            if (not os.path.exists(pillar_path) or not os.path.isdir(pillar_path)):
-                raise errors.AnsibleError("Profiles directory that is specified by ANSIBLE_PILLARS_DIRECTORY does not exists or not a directory: %s" % env_ansible_pillar_path)            
-            self._display.v('Using environment variable ANSIBLE_PILLARS_DIRECTORY: {}'.format(env_ansible_pillar_path))
-            return pillar_path
-        
+            if (not os.path.exists(inventory_pillar_path) or not os.path.isdir(inventory_pillar_path)):
+                raise errors.AnsibleError("Profiles directory that is specified by ANSIBLE_PILLARS_DIRECTORY does not exists or not a directory: %s" % env_ansible_inventory_pillar_path)
+            self._display.v('Using environment variable ANSIBLE_PILLARS_DIRECTORY: {}'.format(env_ansible_inventory_pillar_path))
+            return inventory_pillar_path
         # Second, try to use 'pillar/' directory in playbook directory.
         # If not found, then use 'pillar/' in inventory directory.
         if self.inventory_basedir:
-            pillar_path = os.path.abspath(os.path.join(self.inventory_basedir, "pillar"))
-        else:    
+            inventory_pillar_path = os.path.abspath(os.path.join(self.inventory_basedir, "pillar"))
+        else:
             return None
-
-        if (not os.path.exists(pillar_path) or not os.path.isdir(pillar_path)):
-            self._display.v('pillar path {} not exists!'.format(pillar_path))
+        if (not os.path.exists(inventory_pillar_path) or not os.path.isdir(inventory_pillar_path)):
+            self._display.v('no pillar path found, path: {}.'.format(inventory_pillar_path))
             return None
-        return pillar_path
+        return inventory_pillar_path
