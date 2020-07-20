@@ -28,23 +28,37 @@ class ActionModule(ActionBase):
         for k, v in pillar.items():
             self._display.v('parse setting: {}'.format(str(k)))
             args=v.pop('args', {})
-            func_type=args.pop('type', 'dict')
             check_osver=args.get('check_osver', False)
-            if 'default' in list(v.keys()):
+            if 'default' in v.keys():
                 if check_osver:
+                    # default:
+                    #   7:
+                    #     key1: value1
                     func_type='dict' if isinstance(v['default'].values()[0], dict) else 'list'
                 else:
+                    # default:
+                    #   key1: value1
                     func_type='dict' if isinstance(v['default'], dict) else 'list'
-            elif 'example' in list(v.keys()):
+            elif 'example' in v.keys():
                 if check_osver:
                     func_type='dict' if isinstance(v['example'].values()[0], dict) else 'list'
                 else:
                     func_type='dict' if isinstance(v['example'], dict) else 'list'
             else:
                 if check_osver:
-                    func_type='dict' if isinstance(v[list(v.keys())[0]].values()[0], dict) else 'list'
+                    # domain:
+                    #   domain1:
+                    #     7:
+                    #       key1: value1
+                    self._display.v('pillar value 0 with check osver: {}'.format(v.values()[0].values()[0]))
+                    func_type='dict' if isinstance(v.values()[0].values()[0].values()[0], dict) else 'list'
                 else:
-                    func_type='dict' if isinstance(v[list(v.keys())[0]], dict) else 'list'
+                    # domain:
+                    #   domain1:
+                    #     key1: value1
+                    self._display.v('pillar value 0: {}'.format(v.values()[0].values()[0]))
+                    func_type='dict' if isinstance(v.values()[0].values()[0], dict) else 'list'
+            self._display.v('function type: {}'.format(func_type))
             facts[k] = choice_map.get(func_type)(myhost, v, **args)
         result['failed'] = False
         pillar.update(facts)

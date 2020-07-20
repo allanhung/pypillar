@@ -36,47 +36,52 @@ class VarsModule(BaseVarsPlugin):
     def get_vars(self, loader, path, entities, cache=True):
         ''' parses the inventory file '''
 
+        result = {}
         super(VarsModule, self).get_vars(loader, path, entities)
-        self.inventory_basedir = path
-        self.loader = DataLoader()
+        self.inventory_basedir = ''
+        for entity in entities:
+            if isinstance(entity, Host):
+                self._display.v('host vars:{}, {}'.format(entity.name, entity.vars))
+                self.inventory_basedir = entity.vars['inventory_dir']
+                break
 
-        results = {}
-        # Calculate pillar path (path to the 'pillar/' directory)
-        pillar_path = self.get_pillar_path()
-        
-        # Start from specified pillar path
-        cur_path_list = []
-        cur_path = os.path.join(os.getcwd(), "pillar")
-        if pillar_path == cur_path:
-            cur_path = ''
-        if cur_path and os.path.exists(cur_path) and os.path.isdir(cur_path):
-            cur_path_list.append(os.path.join(cur_path))
-        if pillar_path:
-            cur_path_list.append(os.path.abspath(pillar_path))
-        if not cur_path_list:
-            self._display.v('no pillar path found!')
-            return results
-        # read file with extension '.yml' and folder name not end with '.bak'
-        file_list=[]
-        for cpath in cur_path_list: 
-            self._display.v('Using pillar in path: {}'.format(cpath))
-            for root, subdirs, files in os.walk(cpath):
-               c_file_list=[]
-               if not root.endswith('.bak'):
-                   for f in files:
-                       if f.endswith('.yml'):
-                           c_file_list.append(os.path.join(root,f))
-               c_file_list = sorted(c_file_list)
-               file_list.extend(c_file_list)
-        self._display.vv('loading file list: {}:'.format(file_list))
-        for vars_file in reversed(file_list):
-            if (os.path.exists(vars_file) and os.path.isfile(vars_file) and os.stat(vars_file).st_size != 0):
-                data = self.loader.load_from_file(vars_file)
-                results = vars.combine_vars(data, results)
+        # only process when path == inventory_dir
+        if self.inventory_basedir == path:
+            # Calculate pillar path (path to the 'pillar/' directory)
+            inventory_pillar_path = self.get_inventory_pillar_path()
+            # Start from specified pillar path
+            inventory_pillar_path_list = []
+            cur_path = os.path.join(os.getcwd(), "pillar")
+            if inventory_pillar_path == cur_path:
+                cur_path = ''
+            if cur_path and os.path.exists(cur_path) and os.path.isdir(cur_path):
+                inventory_pillar_path_list.append(os.path.join(cur_path))
+            if inventory_pillar_path:
+                inventory_pillar_path_list.append(os.path.abspath(inventory_pillar_path))
+            if not inventory_pillar_path_list:
+                self._display.v('no pillar path found!')
+                return result
+            # read file with extension '.yml' and folder name not end with '.bak'
+            file_list=[]
+            for cpath in inventory_pillar_path_list:
+                self._display.v('Using pillar in path: {}'.format(cpath))
+                for root, subdirs, files in os.walk(cpath):
+                   c_file_list=[]
+                   if not root.endswith('.bak'):
+                       for f in files:
+                           if f.endswith('.yml'):
+                               c_file_list.append(os.path.join(root,f))
+                   c_file_list = sorted(c_file_list)
+                   file_list.extend(c_file_list)
+            self._display.v('loading file list: {}:'.format(file_list))
+            for vars_file in reversed(file_list):
+                if (os.path.exists(vars_file) and os.path.isfile(vars_file) and os.stat(vars_file).st_size != 0):
+                    data = loader.load_from_file(vars_file)
+                    result = vars.combine_vars(data, result)
 
-        # debug
-        result={'pillar': results}
-        self._display.vvv(str(result))
+            # debug
+            results={'pillar': result}
+            self._display.vv(str(result))
         # all done, results is a dictionary of variables
         return result
 

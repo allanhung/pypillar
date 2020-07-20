@@ -37,12 +37,30 @@ cat > localhost << EOF
 localhost ansible_connection=local
 EOF
 
-mkdir pillar
+mkdir -p pillar
+mkdir -p inventory/test/pillar
+cp localhost inventory/test/
+
+cat > inventory/test/pillar/vars.yml << EOF
+test_message:
+  default:
+    foo: bar_from_inventory
+
+test_list:
+  hostname:
+    localhost:
+      - foo_from_inventory
+EOF
 
 cat > pillar/vars.yml << EOF
 test_message:
   default:
     foo: bar
+
+test_list:
+  hostname:
+    localhost:
+      - foo
 EOF
 
 cat > pillar_playbook.yml << EOF
@@ -50,13 +68,14 @@ cat > pillar_playbook.yml << EOF
   hosts: all
   pre_tasks:
     - pillar: {}
-  task:
+  tasks:
     - debug:
-        msg: "{{ pillar.test_message.foo }}"
+        var: pillar
 EOF
 
 # modify your host setting in example
 ansible-playbook -i localhost pillar_playbook.yml
+ansible-playbook -i inventory/test/localhost pillar_playbook.yml
 ```
 
 ## How it work
